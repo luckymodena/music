@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>邱茂鋒Stephen Khoo Playlist</title>
+
+  <link rel="icon" href="mp3/faviconico.png" type="image/x-icon">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; 
+      padding: 10px;             /* Using padding instead of margin prevents mobile viewport calculation issues */
+      background-color: #000000; /* black background */
+      color: #00ff00;            /* global green text */
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .sticky-header {
+      position: -webkit-sticky; /* For mobile Safari support */
+      position: sticky;
+      top: 0;
+      z-index: 100;                 /* Higher z-index ensures it sits on top of the scrolling list */
+      background-color: #000000;    /* Solid black completely hides scrolling text underneath */
+      padding: 6px 4px 6px 4px;
+      border-bottom: 1px solid #333;
+    }
+
+    .scroll-wrapper {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+
+    .scroll-title {
+      display: block;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;  /* center the text */
+      margin: 0 auto;      /* center as a block */
+    }
+
+    .current-song-wrapper {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 1em;
+      margin-bottom: 4px;
+    }
+    .current-song-text {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scrollCurrent 20s linear infinite;
+      color: #00ffff;
+    }
+
+    /* Make only the news ticker 5x slower */
+    #newsTicker {
+      color: #ffcc00;
+      animation-duration: 150s;
+    }
+
+    @keyframes scrollCurrent {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Analog VU Meter Display Styles */
+    .vu-meter-container {
+      display: flex;
+      justify-content: center;
+      margin: 6px 0;
+      background-color: #000;
+    }
+    #vuMeter {
+      background-color: #111;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+    }
+
+    /* Controls bar */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .controls-group {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    audio {
+      width: 100%;
+      margin-top: 4px;
+      accent-color: #00ff00;
+    }
+    .controls-bar button {
+      background-color: #333;
+      color: #00ff00;         /* green text */
+      border: 1px solid #00ff00; /* green border */
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .controls-bar button:hover {
+      background-color: #555;
+    }
+    .controls-bar button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .repeat-label {
+      font-size: 0.9em;
+    }
+    .repeat-status,
+    .mode-status {
+      font-size: 0.85em;
+      opacity: 0.8;
+    }
+
+    /* New Volume & EQ section styling */
+    .audio-enhancements {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(0, 255, 0, 0.05);
+      border: 1px solid #00ff00;
+      padding: 6px 8px;
+      border-radius: 4px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      align-items: center;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85em;
+    }
+    .slider-group input[type="range"] {
+      accent-color: #00ff00;
+      width: 80px;
+    }
+
+    /* Search section styling */
+    .search-wrapper {
+      margin: 6px 0 2px 0;
+    }
+    .search-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #111;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 1em;
+      outline: none;
+    }
+    .search-input:focus {
+      box-shadow: 0 0 5px #00ff00;
+    }
+
+    p { margin: 8px 0 12px 0; }
+
+    /* Number spacing adjusted to move further right */
+    ol {
+      padding-left: 45px; 
+      margin: 0;
+    }
+
+    li  { margin-bottom: 12px; }
+    
+    .song-title {
+      display: inline-block;
+      background-color: transparent;
+      color: #00ff00;                /* green text */
+      padding: 0;
+      border-radius: 0;
+      margin-bottom: 2px;
+    }
+
+    ol li.playing {
+      border: 2px solid #ffffff;
+      border-radius: 6px;
+      padding: 4px 6px;
+      background-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 10px #ffffff;
+      animation: blinkPlaying 2s linear infinite;
+    }
+
+    @keyframes blinkPlaying {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 6px; /* Padding for mobile ensures sticky top stays unbothered */
+      }
+      .scroll-title {
+        font-size: 1.3em;
+      }
+      .current-song-wrapper {
+        font-size: 0.95em;
+      }
+      li {
+        margin-bottom: 10px;
+      }
+      .audio-enhancements {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sticky-header">
+      <div class="scroll-wrapper">
+        <h2 class="scroll-title">Stephen Khoo 邱茂鋒 Playlist</h2>
+      </div>
+
+      <div class="current-song-wrapper">
+        <span id="currentSongScrolling" class="current-song-text">
+          Now Playing: (no song yet)
+        </span>
+      </div>
+
+      <div class="current-song-wrapper">
+        <span id="newsTicker" class="current-song-text">
+          Latest News: (loading...)
+        </span>
+      </div>
+
+      <div class="vu-meter-container">
+        <canvas id="vuMeter" width="300" height="110"></canvas>
+      </div>
+
+      <div class="controls-bar">
+        <div class="controls-group">
+          <button id="playBtn" type="button">Play</button>
+          <button id="stopBtn" type="button">Stop</button>
+          <button id="prevBtn" type="button">Previous</button>
+          <button id="nextBtn" type="button">Next</button>
+          <button id="shuffleBtn" type="button">Shuffle</button>
+        </div>
+
+        <span class="repeat-label">
+          Repeat:
+          <button id="repeatBtn" type="button">Off</button>
+        </span>
+
+        <span id="repeatStatus" class="repeat-status">
+          Repeat mode: Off
+        </span>
+
+        <span class="repeat-label">
+          Mode:
+          <button id="modeBtn" type="button">Shuffle</button>
+        </span>
+        <span id="modeStatus" class="mode-status">
+          Play mode: Shuffle (random)
+        </span>
+      </div>
+
+      <div class="audio-enhancements">
+        <div class="slider-group">
+          <label for="masterVolume">Volume:</label>
+          <input id="masterVolume" type="range" min="0" max="1" step="0.05" value="1">
+        </div>
+        <div class="slider-group">
+          <label for="bassEq">Bass:</label>
+          <input id="bassEq" type="range" min="-12" max="12" step="1" value="0">
+        </div>
+        <div class="slider-group">
+          <label for="midEq">Mid:</label>
+          <input id="midEq" type="range" min="-12" max="12" step="1" value="0">
+        </div>
+        <div class="slider-group">
+          <label for="trebleEq">Treble:</label>
+          <input id="trebleEq" type="range" min="-12" max="12" step="1" value="0">
+        </div>
+      </div>
+
+      <div class="search-wrapper">
+        <input type="text" id="songSearch" class="search-input" placeholder="Search song title...">
+      </div>
+    </div>
+
+    <div class="audio-enhancements" style="margin-top: 12px; margin-bottom: 12px; border-color: #00ffff;">
+      <div class="slider-group" style="flex: 1; flex-direction: column; align-items: flex-start;">
+        <strong style="color: #00ffff;">Add a Song</strong>
+        <div style="display: flex; gap: 4px; width: 100%; flex-wrap: wrap;">
+          <input id="newTitle" type="text" placeholder="Song Title" style="background:#111; border:1px solid #00ff00; color:#00ff00; padding:6px; flex: 1; min-width: 140px; border-radius: 4px;">
+          <input id="newUrl" type="text" placeholder="Audio URL" style="background:#111; border:1px solid #00ff00; color:#00ff00; padding:6px; flex: 2; min-width: 180px; border-radius: 4px;">
+          <button id="submitAdd" type="button" style="background:#333; color:#00ffff; border:1px solid #00ffff; padding:6px 12px; cursor:pointer; border-radius: 4px;">Add</button>
+        </div>
+      </div>
+      <div class="slider-group" style="flex: 0 0 auto; flex-direction: column; align-items: flex-start;">
+        <strong style="color: #00ffff;">Remove a Song</strong>
+        <div style="display: flex; gap: 4px;">
+          <input id="removeIdx" type="number" placeholder="No." style="background:#111; border:1px solid #00ff00; color:#00ff00; padding:6px; width: 55px; border-radius: 4px;">
+          <button id="submitRemove" type="button" style="background:#333; color:#ff3333; border:1px solid #ff3333; padding:6px 12px; cursor:pointer; border-radius: 4px;">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <p style="padding-left: 25px;">Click Play next to any track to stream it.</p>
+
+    <ol id="playlist">
+
+      <li><span class="song-title">Jay Chou – Qing Tian</span>
+        <audio controls class="track">
+          <source src="mp3/Qing%20Tian.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Wang Yuzhou Leto ft Qiao JunCheng (若月亮沒來) – Ruo Yue Liang Mei Lai</span>
+        <audio controls class="track">
+          <source src="mp3/Ruo%20Yue%20Liang%20Mei%20Lai.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">A Rong (阿冗) – 你的答案 (Your Answer)</span>
+        <audio controls class="track">
+          <source src="mp3/Ah%20Rong%20-%20Lyrics.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">René Liu (劉若英) – 後來 (Later)</span>
+        <audio controls class="track">
+          <source src="mp3/ReneLiu-Hou%20Lai.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Wu Bai &amp; China Blue – 挪威的森林 (Norwegian Forest)</span>
+        <audio controls class="track">
+          <source src="mp3/%E4%BC%8D%E4%BD%B0%20Wu%20Bai%26China%20Blue%E6%8C%AA%E5%A8%81%E7%9A%84%E6%A3%AE%E6%9E%97%20Norwegian%20forestOfficial%20Music%20Video.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Dave Wang (王傑) – 是否我真的一無所有 (Is It True That I Have Nothing Of My Own)</span>
+        <audio controls class="track">
+          <source src="mp3/Dave%20Wang-Have%20nothing.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Accusefive (告五人) – 愛人錯過 (Somewhere in Time)</span>
+        <audio controls class="track">
+          <source src="mp3/%E5%91%8A%E4%BA%94%E4%BA%BA%20Accusefive%20%E6%84%9B%E4%BA%BA%E9%8C%AF%E9%81%8E%20Somewhere%20in%20timeOfficial%20Music%20Video.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Wen Yi Xin (溫奕心) – 一路生花 (Hopeful Wishes)</span>
+        <audio controls class="track">
+          <source src="mp3/WYX%20Hopeful.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Jonathan Lee (李宗盛) – 我曾用心爱着你 (国语)</span>
+        <audio controls class="track">
+          <source src="mp3/%E6%9D%8E%E5%AE%97%E7%9B%9B%20-%20%E6%88%91%E6%9B%BE%E7%94%A8%E5%BF%83%E7%88%B1%E7%9D%80%E4%BD%A0%20(%E5%9B%BD%E8%AF%AD)%20%20Jonathan%20Lee%20-%20I%20Used%20to%20Love%20You%20(Mandarin).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Bic Runga – Sway</span>
+        <audio controls class="track">
+          <source src="mp3/Bic%20Runga%20-%20Sway.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Howie Day-Collide</span>
+        <audio controls class="track">
+          <source src="mp3/Howie%20Day%20-%20Collide.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      
+      <li><span class="song-title">Barbra Streisand – Woman in Love (Audio)</span>
+        <audio controls class="track">
+          <source src="mp3/Barbra%20Streisand%20-%20Woman%20in%20Love%20(Audio).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Bon Jovi – Always</span>
+        <audio controls class="track">
+          <source src="mp3/Bon%20Jovi%20-%20Always.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Britney Spears – Everytime (Official HD Video)</span>
+        <audio controls class="track">
+          <source src="mp3/Britney%20Spears%20-%20Everytime%20(Official%20HD%20Video).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+     
+      <li><span class="song-title">DELACEY – Dream It Possible (Official Audio)</span>
+        <audio controls class="track">
+          <source src="mp3/DELACEY%20-%20Dream%20It%20Possible%20(Official%20Audio).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Ellie Goulding – Love Me Like You Do (Official Video)</span>
+        <audio controls class="track">
+          <source src="mp3/Ellie%20Goulding%20-%20Love%20Me%20Like%20You%20Do%20(Official%20Video).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Eye In The Sky (Extended Mix)</span>
+        <audio controls class="track">
+          <source src="mp3/Eye%20In%20The%20Sky%20(Extended%20Mix).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Goodbye Girl</span>
+        <audio controls class="track">
+          <source src="mp3/Goodbye%20Girl.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Breathe – How Can I Fall (Lyrics)</span>
+        <audio controls class="track">
+          <source src="mp3/How%20Can%20I%20Fall%20(Lyrics)%20%20Breathe%20%40LYRICS%20STREET%20%23lyric%20%23breathe%20%23howcanifall.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">I Do (Cherish You)</span>
+        <audio controls class="track">
+          <source src="mp3/I%20Do%20(Cherish%20You).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Keane – Somewhere Only We Know (Lyrics)</span>
+        <audio controls class="track">
+          <source src="mp3/Keane%20-%20Somewhere%20Only%20We%20Know%20(Lyrics).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Kygo – Stargazing ft. Justin Jesso</span>
+        <audio controls class="track">
+          <source src="mp3/Kygo%20-%20Stargazing%20ft.%20Justin%20Jesso.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+     
+      <li><span class="song-title">Lana Del Rey – Take Me Home, Country Roads (Official Audio)</span>
+        <audio controls class="track">
+          <source src="mp3/Lana%20Del%20Rey%20-%20Take%20Me%20Home%2C%20Country%20Roads%20(Official%20Audio).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Lighthouse Family – High</span>
+        <audio controls class="track">
+          <source src="mp3/Lighthouse%20Family%20-%20High.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      
+      <li><span class="song-title">Michael Learns To Rock – Take Me To Your Heart [Official Video] (with Lyrics Closed Caption)</span>
+        <audio controls class="track">
+          <source src="mp3/Michael%20Learns%20To%20Rock%20-%20Take%20Me%20To%20Your%20Heart%20%5BOfficial%20Video%5D%20(with%20Lyrics%20Closed%20Caption).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">The Cranberries – Ode To My Family</span>
+        <audio controls class="track">
+          <source src="mp3/Ode%20To%20My%20Family-Cranberries%2C%20The.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Queen &amp; David Bowie – Under Pressure live [1981] sounds better</span>
+        <audio controls class="track">
+          <source src="mp3/Queen%20%26%20David%20Bowie%20-%20Under%20Pressure%20%20live%20%5B1981%5D%20sounds%20better.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">R.E.M – Losing My Religion</span>
+        <audio controls class="track">
+          <source src="mp3/R.E.M%20-%20Losing%20My%20Religion.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Rod Stewart – Young Turks (Official Video) [HD Remaster]</span>
+        <audio controls class="track">
+          <source src="mp3/Rod%20Stewart%20-%20Young%20Turks%20(Official%20Video)%20%5BHD%20Remaster%5D.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Sinéad O'Connor – Nothing Compares 2U [Official Music Video]</span>
+        <audio controls class="track">
+          <source src="mp3/Sin%C3%A9ad%20O'Connor%20-%20Nothing%20Compares%202U%20%5BOfficial%20Music%20Video%5D.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+     
+<li><span class="song-title">Journey - DSB</span>
+        <audio controls class="track">
+          <source src="mp3/Journey%20-%20DSB.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+
+      <li><span class="song-title">Punkrocker – Teddybears (feat Iggy) – Superman Ending Song 2025 (James Gunn)</span>
+        <audio controls class="track">
+          <source src="mp3/Superman%20Ending%20Song%202025%20(James%20Gunn)%20%20Punkrocker%20-%20Teddybears%20(feat%20Iggy).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">The Black Eyed Peas – Where Is The Love? (Official Music Video)</span>
+        <audio controls class="track">
+          <source src="mp3/The%20Black%20Eyed%20Peas%20-%20Where%20Is%20The%20Love_%20(Official%20Music%20Video).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">The Weeknd &amp; Ariana Grande – Save Your Tears (Remix) (Official Video)</span>
+        <audio controls class="track">
+          <source src="mp3/The%20Weeknd%20%26%20Ariana%20Grande%20-%20Save%20Your%20Tears%20(Remix)%20(Official%20Video).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Turn Back the Clock [Acoustic Version]</span>
+        <audio controls class="track">
+          <source src="mp3/Turn%20Back%20the%20Clock%20%5BAcoustic%20Version%5D.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Whom Jesus Loves – New Creation Worship</span>
+        <audio controls class="track">
+          <source src="mp3/Whom%20Jesus%20Loves%20%20New%20Creation%20Worship.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">You Are a Priest Forever</span>
+        <audio controls class="track">
+          <source src="mp3/You%20are%20a%20Priest%20Forever.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">desolate (Slowed &amp; Extended)</span>
+        <audio controls class="track">
+          <source src="mp3/desolate%20(Slowed%20%26%20Extended).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Can't Let Go – Tokyo Square (Eng sub, with lyrics)</span>
+        <audio controls class="track">
+          <source src="mp3/EngsubCan't%20Let%20Go%20-%20Tokyo%20Square%20(w%20lyrics).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Lady Gaga – Die With A Smile</span>
+        <audio controls class="track">
+          <source src="mp3/002.%20Lady%20Gaga%20-%20Die%20With%20A%20Smile.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Chappell Roan – Pink Pony Club</span>
+        <audio controls class="track">
+          <source src="mp3/006.%20Chappell%20Roan%20-%20Pink%20Pony%20Club.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Filthy Express – Come Around</span>
+        <audio controls class="track">
+          <source src="mp3/Come%20Around.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Billie Eilish – BIRDS OF A FEATHER</span>
+        <audio controls class="track">
+          <source src="mp3/013.%20Billie%20Eilish%20-%20BIRDS%20OF%20A%20FEATHER.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Gracie Abrams – That’s So True</span>
+        <audio controls class="track">
+          <source src="mp3/020.%20Gracie%20Abrams%20-%20That%E2%80%99s%20So%20True.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Myles Smith – Stargazing</span>
+        <audio controls class="track">
+          <source src="mp3/028.%20Myles%20Smith%20-%20Stargazing.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">The Marías – No One Noticed</span>
+        <audio controls class="track">
+          <source src="mp3/029.%20The%20Mar%C3%ADas%20-%20No%20One%20Noticed.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">The Weeknd – Cry For Me</span>
+        <audio controls class="track">
+          <source src="mp3/044.%20The%20Weeknd%20-%20Cry%20For%20Me.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+     
+      <li><span class="song-title">Christina Perri – A Thousand Years</span>
+        <audio controls class="track">
+          <source src="mp3/94.%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Christopher Cross – Sailing</span>
+        <audio controls class="track">
+          <source src="mp3/Christopher%20Cross%20-%20Sailing.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Christopher Cross – Swept Away</span>
+        <audio controls class="track">
+          <source src="mp3/Christopher%20Cross%20-%20Swept%20Away.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Fei Yu-ching – Yi Jian Mei (Xue hua piao piao) (Lyrics)</span>
+        <audio controls class="track">
+          <source src="mp3/Fei%20Yu-ching%20-%20Yi%20Jian%20Mei%20(Xue%20hua%20piao%20piao)%20(Lyrics).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Yao Si Ting – Betrayal (黄昏) (HQ – English + Chinese Subtitles)</span>
+        <audio controls class="track">
+          <source src="mp3/Betrayal%20by%20Yao%20Si%20Ting%20-%20%E9%BB%84%E6%98%8F%20(%E5%A7%9A%E6%96%AF%E5%A9%B7)%20-%20HQ%20-%20English%2BChinese%20Subtitles.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">One Night in Beijing (北京一夜)</span>
+        <audio controls class="track">
+          <source src="mp3/ONE%20NIGHT%20IN%20BEIJING%20(%E5%8C%97%E4%BA%AC%E4%B8%80%E5%A4%9C).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Believe It or Not (Theme from Greatest American Hero)</span>
+        <audio controls class="track">
+          <source src="mp3/Believe%20It%20or%20Not%20(Theme%20from%20Greatest%20American%20Hero).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">38 Special – Second Chance</span>
+        <audio controls class="track">
+          <source src="mp3/38%20Special%20-%20Second%20Chance.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+
+      <li><span class="song-title">Hacken Lee (李克勤) – 一生不變 (一生不变)</span>
+        <audio controls class="track">
+          <source src="mp3/%E4%B8%80%E7%94%9F%E4%B8%8D%E5%8F%98%20%E6%9D%8E%E5%85%8B%E5%8B%A4%20(%E6%AD%8C%E8%AF%8D%E7%89%88).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Tom Chang (張雨生) – 我的未來不是夢 (我的未来不是梦)</span>
+        <audio controls class="track">
+          <source src="mp3/%E5%BC%B5%E9%9B%A8%E7%94%9F%20-%20%E6%88%91%E7%9A%84%E6%9C%AA%E4%BE%86%E4%B8%8D%E6%98%AF%E5%A4%A2%E6%AD%8C%E8%A9%9E.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Dave Wang (王傑) – 忘了你忘了我 (Forget About You Forget About Me)</span>
+        <audio controls class="track">
+          <source src="mp3/DW%20Forget.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Dave Wang (王傑) – Nothing</span>
+        <audio controls class="track">
+          <source src="mp3/DW%20Nothing.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Dave Wang (王傑) – 她的背影</span>
+        <audio controls class="track">
+          <source src="mp3/DW%20Back.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Albert Lui (雷有輝) – 傷心出行</span>
+        <audio controls class="track">
+          <source src="mp3/%E5%82%B7%E5%BF%83%E5%87%BA%E8%A1%8C%20-%20%E9%9B%B7%E6%9C%89%E8%BC%9D%20%E5%8A%87%E9%9B%86%E6%A5%B5%E5%BA%A6%E4%BF%8F%E9%83%8E%E5%90%9B%E7%89%87%E5%B0%BE%E6%9B%B2.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">請求瑪利亞 – Soundtrack of Timeless Mother (跨时空的好母亲)</span>
+        <audio controls class="track">
+          <source src="mp3/%E8%AF%B7%E6%B1%82%E7%8E%9B%E5%88%A9%E4%BA%9A%20-%20from%20the%20soundtrack%20of%20Timeless%20Mother%E3%80%8A%E8%B7%A8%E6%97%B6%E7%A9%BA%E7%9A%84%E5%A5%BD%E6%AF%8D%E4%BA%B2%E3%80%8B.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+    
+      <li><span class="song-title">Tony Leung (梁朝偉) – 一天一点爱恋</span>
+        <audio controls class="track">
+          <source src="mp3/%5B%E6%A2%81%E6%9C%9D%E4%BC%9F%5D%E4%B8%80%E5%A4%A9%E4%B8%80%E7%82%B9%E7%88%B1%E6%81%8B.mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+   
+
+      <li><span class="song-title">Berlin – Take My Breath Away (Top Gun)</span>
+        <audio controls class="track">
+          <source src="mp3/Berlin%20-%20Take%20My%20Breath%20Away%20(Official%20Video%20-%20Top%20Gun).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+      <li><span class="song-title">Guys Next Door – I've Been Waiting For You</span>
+        <audio controls class="track">
+          <source src="mp3/Guys%20Next%20Door%20-%20I've%20Been%20Waiting%20For%20You%20(Music%20Video).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+             <li><span class="song-title">Avril Lavigne – I'm With You</span>
+        <audio controls class="track">
+          <source src="mp3/Avril%20Lavigne%20-%20I'm%20With%20You%20(Official%20Video).mp3" type="audio/mpeg">
+        </audio>
+      </li>
+
+     
+    </ol>
+  </div>
+
+  <script>
+    const NEWS_FEEDS = [
+      'https://feeds.bbci.co.uk/news/world/rss.xml',
+      'https://www.cnbc.com/id/100727362/device/rss/rss.html',
+      'https://rss.nytimes.com/services/xml/rss/nyt/World.xml'
+    ];
+    const RSS2JSON_BASE = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+    let items = Array.from(document.querySelectorAll('#playlist li'));
+    let tracks = Array.from(document.querySelectorAll('#playlist .track'));
+    
+    // Global Player state
+    let currentlyPlaying = -1;
+    let queue = [];
+    let queuePos = -1;
+    let repeatMode = 'off'; // 'off' | 'one' | 'all'
+    let playMode = 'shuffle'; // 'normal' | 'shuffle'
+
+    // DOM Elements
+    const playBtn = document.getElementById('playBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    
+    const repeatBtn = document.getElementById('repeatBtn');
+    const repeatStatus = document.getElementById('repeatStatus');
+    const modeBtn = document.getElementById('modeBtn');
+    const modeStatus = document.getElementById('modeStatus');
+    
+    const currentSongSpan = document.getElementById('currentSongScrolling');
+    const songSearch = document.getElementById('songSearch');
+    const newsTicker = document.getElementById('newsTicker');
+
+    // Equalizer sliders
+    const masterVolume = document.getElementById('masterVolume');
+    const bassEq = document.getElementById('bassEq');
+    const midEq = document.getElementById('midEq');
+    const trebleEq = document.getElementById('trebleEq');
+
+    // Web Audio Variables
+    let audioCtx = null;
+    let analyzer = null;
+    let pcmData = null;
+    let leftValue = 0;
+    let rightValue = 0;
+    let animationFrameId = null;
+
+    let bassNode = null;
+    let midNode = null;
+    let trebleNode = null;
+
+    // Create dynamic VU Meter visuals
+    const canvas = document.getElementById('vuMeter');
+    const ctx = canvas.getContext('2d');
+
+    function drawVUMeter() {
+      animationFrameId = requestAnimationFrame(drawVUMeter);
+
+      // Extract music peaks if active
+      if (analyzer && currentlyPlaying !== -1 && !tracks[currentlyPlaying].paused) {
+        analyzer.getFloatTimeDomainData(pcmData);
+        let sumSquares = 0.0;
+        for (const amplitude of pcmData) {
+          sumSquares += amplitude * amplitude;
+        }
+        let rms = Math.sqrt(sumSquares / pcmData.length);
+        let peak = rms * 2.5; 
+        if (peak > 1) peak = 1;
+
+        // Visual drop decay for a realistic needle sweep
+        leftValue = leftValue * 0.85 + peak * 0.15;
+        rightValue = rightValue * 0.88 + peak * 0.12;
+      } else {
+        leftValue *= 0.85;
+        rightValue *= 0.85;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Arc background gauge
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height + 20, 110, Math.PI, 2 * Math.PI);
+      ctx.stroke();
+
+      // Tick marks and numerical scale
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 2;
+      ctx.font = '10px Arial';
+      ctx.fillStyle = '#00ff00';
+
+      for (let i = 0; i <= 10; i++) {
+        let angle = Math.PI + (i / 10) * Math.PI;
+        let startX = (canvas.width / 2) + Math.cos(angle) * 100;
+        let startY = (canvas.height + 20) + Math.sin(angle) * 100;
+        let endX = (canvas.width / 2) + Math.cos(angle) * 115;
+        let endY = (canvas.height + 20) + Math.sin(angle) * 115;
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Level text markings
+        if (i % 2 === 0) {
+          let labelX = (canvas.width / 2) + Math.cos(angle) * 85;
+          let labelY = (canvas.height + 20) + Math.sin(angle) * 85;
+          let dbValue = -20 + (i * 2);
+          ctx.fillText(dbValue === 0 ? '0dB' : dbValue, labelX - 10, labelY);
+        }
+      }
+
+      // Draw active meters
+      drawNeedle(leftValue, '#00ff00', 3);
+      drawNeedle(rightValue, '#00ffff', 2);
+
+      // Central physical hub pivot
+      ctx.fillStyle = '#111';
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height + 20, 14, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function drawNeedle(value, color, thickness) {
+      let angle = Math.PI + (value * Math.PI * 0.95);
+      let needleLen = 112;
+      let targetX = (canvas.width / 2) + Math.cos(angle) * needleLen;
+      let targetY = (canvas.height + 20) + Math.sin(angle) * needleLen;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = thickness;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, canvas.height + 20);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+    }
+
+    function setupEqualizer(activeTrack) {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // Initialize analyzer node
+      if (!analyzer) {
+        analyzer = audioCtx.createAnalyser();
+        analyzer.fftSize = 256;
+        pcmData = new Float32Array(analyzer.fftSize);
+      }
+
+      // Set up equalizer nodes if they don't exist
+      if (!bassNode) {
+        bassNode = audioCtx.createBiquadFilter();
+        bassNode.type = 'lowshelf';
+        bassNode.frequency.value = 200;
+        bassNode.gain.value = parseFloat(bassEq.value);
+
+        midNode = audioCtx.createBiquadFilter();
+        midNode.type = 'peaking';
+        midNode.frequency.value = 1000;
+        midNode.Q.value = 1;
+        midNode.gain.value = parseFloat(midEq.value);
+
+        trebleNode = audioCtx.createBiquadFilter();
+        trebleNode.type = 'highshelf';
+        trebleNode.frequency.value = 4000;
+        trebleNode.gain.value = parseFloat(trebleEq.value);
+
+        // Signal route: source -> analyzer -> EQ nodes -> destinations
+        bassNode.connect(midNode);
+        midNode.connect(trebleNode);
+        trebleNode.connect(audioCtx.destination);
+      }
+
+      // Connect source to analyzer 
+      if (!activeTrack.hasConnectedWebAudio) {
+        try {
+          const source = audioCtx.createMediaElementSource(activeTrack);
+          source.connect(analyzer);
+          analyzer.connect(bassNode);
+          activeTrack.hasConnectedWebAudio = true;
+        } catch (e) {
+          console.warn("Media element already tied or Web Audio blocked:", e);
+        }
+      }
+
+      // Start the display redraw loop
+      if (!animationFrameId) {
+        drawVUMeter();
+      }
+    }
+
+    // Dynamic modifications on sliders
+    if (bassEq) {
+      bassEq.addEventListener('input', (e) => {
+        if (bassNode) bassNode.gain.value = parseFloat(e.target.value);
+      });
+    }
+    if (midEq) {
+      midEq.addEventListener('input', (e) => {
+        if (midNode) midNode.gain.value = parseFloat(e.target.value);
+      });
+    }
+    if (trebleEq) {
+      trebleEq.addEventListener('input', (e) => {
+        if (trebleNode) trebleNode.gain.value = parseFloat(e.target.value);
+      });
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function getSongTitleFromLi(li) {
+      const span = li.querySelector('.song-title');
+      return span ? span.textContent.trim() : li.textContent.trim();
+    }
+
+    function updateCurrentSongLine(trackIdx) {
+      if (!currentSongSpan) return;
+      if (trackIdx < 0 || trackIdx >= items.length) {
+        currentSongSpan.textContent = 'Now Playing: (no song yet)';
+        return;
+      }
+      const title = getSongTitleFromLi(items[trackIdx]);
+      currentSongSpan.textContent = 'Now Playing: ' + title;
+    }
+
+    function stopAllTracksExcept(exceptIdx) {
+      tracks.forEach((audio, idx) => {
+        if (idx !== exceptIdx) {
+          audio.pause();
+          items[idx].classList.remove('playing');
+        }
+      });
+    }
+
+    function buildQueue(startFromIdx) {
+      const allIndices = tracks.map((_, i) => i);
+      if (playMode === 'normal') {
+        queue = allIndices;
+        queuePos = queue.indexOf(startFromIdx);
+        if (queuePos === -1) queuePos = 0;
+      } else {
+        shuffleArray(allIndices);
+        const pullCurrent = allIndices.indexOf(startFromIdx);
+        if (pullCurrent !== -1) {
+          allIndices.splice(pullCurrent, 1);
+        }
+        queue = [startFromIdx, ...allIndices];
+        queuePos = 0;
+      }
+    }
+
+    function playCurrentFromQueue() {
+      if (queuePos >= 0 && queuePos < queue.length) {
+        playTrack(queue[queuePos]);
+      } else {
+        updateCurrentSongLine(-1);
+      }
+    }
+
+    function playCurrentFromQueueAsync() {
+      if (queuePos >= 0 && queuePos < queue.length) {
+        playTrack(queue[queuePos]);
+      }
+    }
+
+    function playTrack(idx) {
+      if (idx < 0 || idx >= tracks.length) return;
+      stopAllTracksExcept(idx);
+
+      currentlyPlaying = idx;
+      const audio = tracks[idx];
+
+      setupEqualizer(audio);
+
+      if (masterVolume) {
+        audio.volume = parseFloat(masterVolume.value);
+      }
+
+      audio.currentTime = 0;
+      items[idx].classList.add('playing');
+      updateCurrentSongLine(idx);
+      
+      audio.play().catch(err => {
+        console.warn('Playback failed:', err);
+      });
+    }
+
+    function goToNext() {
+      if (playMode === 'normal') {
+        let currentIndex;
+        if (currentlyPlaying !== -1) currentIndex = currentlyPlaying;
+        else if (queuePos >= 0) currentIndex = queuePos;
+        else currentIndex = 0;
+
+        let nextIndex = currentIndex + 1;
+        if (nextIndex >= tracks.length) {
+          if (repeatMode === 'all') nextIndex = 0;
+          else nextIndex = tracks.length - 1;
+        }
+        queue = tracks.map((_, i) => i);
+        queuePos = nextIndex;
+        playTrack(nextIndex);
+        return;
+      }
+
+      if (!queue.length) {
+        if (currentlyPlaying !== -1) buildQueue(currentlyPlaying);
+        else buildQueue(0);
+      }
+
+      if (repeatMode === 'one') {
+        if (currentlyPlaying !== -1) playTrack(currentlyPlaying);
+        return;
+      }
+
+      if (queuePos < queue.length - 1) {
+        queuePos++;
+      } else {
+        if (repeatMode === 'all') queuePos = 0;
+        else {
+          const baseIdx = (currentlyPlaying !== -1) ? currentlyPlaying : queue[queuePos];
+          buildQueue(baseIdx);
+        }
+      }
+      playCurrentFromQueue();
+    }
+
+    function goToPrevious() {
+      if (playMode === 'normal') {
+        let currentIndex;
+        if (currentlyPlaying !== -1) currentIndex = currentlyPlaying;
+        else if (queuePos >= 0) currentIndex = queuePos;
+        else currentIndex = 0;
+
+        let prevIndex = currentIndex - 1;
+        if (prevIndex < 0) {
+          if (repeatMode === 'all') prevIndex = tracks.length - 1;
+          else prevIndex = 0;
+        }
+        queue = tracks.map((_, i) => i);
+        queuePos = prevIndex;
+        playTrack(prevIndex);
+        return;
+      }
+
+      if (!queue.length) {
+        if (currentlyPlaying !== -1) buildQueue(currentlyPlaying);
+        else buildQueue(0);
+      }
+
+      if (repeatMode === 'one') {
+        if (currentlyPlaying !== -1) playTrack(currentlyPlaying);
+        return;
+      }
+
+      if (queuePos > 0) {
+        queuePos--;
+      } else {
+        if (repeatMode === 'all') {
+          queuePos = queue.length - 1;
+        } else {
+          queuePos = 0;
+        }
+      }
+      playCurrentFromQueue();
+    }
+
+    function handleStopButton() {
+      if (currentlyPlaying !== -1) {
+        tracks[currentlyPlaying].pause();
+        tracks[currentlyPlaying].currentTime = 0;
+        items[currentlyPlaying].classList.remove('playing');
+        currentlyPlaying = -1;
+        updateCurrentSongLine(-1);
+      }
+    }
+
+    function cyclePlayMode() {
+      if (playMode === 'normal') {
+        playMode = 'shuffle';
+        if (modeBtn) modeBtn.textContent = 'Normal';
+        if (modeStatus) modeStatus.textContent = 'Play mode: Shuffle (random)';
+      } else {
+        playMode = 'normal';
+        if (modeBtn) modeBtn.textContent = 'Shuffle';
+        if (modeStatus) modeStatus.textContent = 'Play mode: Normal (continuous)';
+      }
+      if (currentlyPlaying !== -1) {
+        buildQueue(currentlyPlaying);
+      }
+    }
+
+    function cycleRepeatMode() {
+      if (repeatMode === 'off') {
+        repeatMode = 'one';
+        repeatBtn.textContent = 'One';
+        repeatStatus.textContent = 'Repeat mode: One';
+      } else if (repeatMode === 'one') {
+        repeatMode = 'all';
+        repeatBtn.textContent = 'All';
+        repeatStatus.textContent = 'Repeat mode: All';
+      } else {
+        repeatMode = 'off';
+        repeatBtn.textContent = 'Off';
+        repeatStatus.textContent = 'Repeat mode: Off';
+      }
+    }
+
+    // Connect individual tracks to events
+    function addAudioListeners(audio, idx) {
+      audio.addEventListener('play', () => {
+        if (currentlyPlaying !== idx) {
+          playTrack(idx);
+        }
+      });
+      audio.addEventListener('ended', () => {
+        goToNext();
+      });
+    }
+
+    // Hook listeners for initial tracks
+    tracks.forEach((audio, idx) => {
+      addAudioListeners(audio, idx);
+    });
+
+    // Control bar UI triggers
+    if (playBtn) playBtn.addEventListener('click', () => {
+      if (currentlyPlaying !== -1) {
+        tracks[currentlyPlaying].play();
+      } else {
+        if (queuePos >= 0) playCurrentFromQueueAsync();
+        else {
+          buildQueue(0);
+          playCurrentFromQueueAsync();
+        }
+      }
+    });
+
+    if (stopBtn) stopBtn.addEventListener('click', handleStopButton);
+    if (prevBtn) prevBtn.addEventListener('click', goToPrevious);
+    if (nextBtn) nextBtn.addEventListener('click', goToNext);
+
+    if (shuffleBtn) shuffleBtn.addEventListener('click', () => {
+      buildQueue(0);
+      playCurrentFromQueue();
+    });
+
+    if (repeatBtn) repeatBtn.addEventListener('click', cycleRepeatMode);
+    if (modeBtn) modeBtn.addEventListener('click', cyclePlayMode);
+
+    // Sync master volume
+    if (masterVolume) {
+      masterVolume.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        tracks.forEach(t => t.volume = val);
+      });
+    }
+
+    // Implement real-time song searching filter
+    if (songSearch) {
+      songSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        items.forEach(li => {
+          const titleText = getSongTitleFromLi(li).toLowerCase();
+          if (titleText.includes(term)) {
+            li.style.display = '';
+          } else {
+            li.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    // Dynamic Playlist Maintenance Tools
+    function addSong(title, url) {
+      const playlist = document.getElementById('playlist');
+      if (!playlist) return;
+
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.className = 'song-title';
+      span.textContent = title;
+
+      const audio = document.createElement('audio');
+      audio.controls = true;
+      audio.className = 'track';
+
+      const source = document.createElement('source');
+      source.src = url;
+      source.type = 'audio/mpeg';
+
+      audio.appendChild(source);
+      li.appendChild(span);
+      li.appendChild(audio);
+      playlist.appendChild(li);
+
+      // Re-read and refresh internal global tracking arrays
+      refreshTrackArrays();
+
+      // Hook up event handlers on the new track
+      const newIdx = tracks.length - 1;
+      addAudioListeners(audio, newIdx);
+
+      // Rebuild the playback pipeline
+      buildQueue(currentlyPlaying !== -1 ? currentlyPlaying : 0);
+      console.log(`Successfully added: "${title}"`);
+    }
+
+    function removeSong(index) {
+      const targetIdx = index - 1; // Translate from 1-based to 0-based
+      if (targetIdx < 0 || targetIdx >= items.length) {
+        console.warn(`Invalid track number: ${index}. Range is 1 to ${items.length}.`);
+        return;
+      }
+
+      if (currentlyPlaying === targetIdx) {
+        handleStopButton();
+      }
+
+      items[targetIdx].remove();
+
+      refreshTrackArrays();
+      buildQueue(currentlyPlaying !== -1 ? currentlyPlaying : 0);
+      console.log(`Successfully removed song number: ${index}`);
+    }
+
+    function refreshTrackArrays() {
+      const newItems = Array.from(document.querySelectorAll('#playlist li'));
+      const newTracks = Array.from(document.querySelectorAll('#playlist .track'));
+      
+      items.length = 0;
+      items.push(...newItems);
+      
+      tracks.length = 0;
+      tracks.push(...newTracks);
+    }
+
+    // Bind Admin Management UI buttons
+    document.getElementById('submitAdd').addEventListener('click', () => {
+      const titleInput = document.getElementById('newTitle');
+      const urlInput = document.getElementById('newUrl');
+      const title = titleInput.value.trim();
+      const url = urlInput.value.trim();
+      if (title && url) {
+        addSong(title, url);
+        titleInput.value = '';
+        urlInput.value = '';
+      }
+    });
+
+    document.getElementById('submitRemove').addEventListener('click', () => {
+      const removeInput = document.getElementById('removeIdx');
+      const idx = parseInt(removeInput.value, 10);
+      if (!isNaN(idx)) {
+        removeSong(idx);
+        removeInput.value = '';
+      }
+    });
+
+    // Fetch initial headlines for custom news ticker
+    async function fetchNews() {
+      if (!newsTicker) return;
+      newsTicker.textContent = 'Latest News: (loading...)';
+      
+      const results = [];
+      for (const feedUrl of NEWS_FEEDS) {
+        try {
+          const url = RSS2JSON_BASE + encodeURIComponent(feedUrl);
+          const r = await fetch(url);
+          if (r.ok) {
+            const data = await r.json();
+            if (data && data.items) {
+              const headlines = data.items.slice(0, 5).map(item => item.title).filter(Boolean);
+              results.push(...headlines);
+            }
+          }
+        } catch (err) {
+          console.warn('Error fetching feed', feedUrl, err);
+        }
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      const unique = [...new Set(results)];
+      if (unique.length > 0) {
+        newsTicker.textContent = 'Latest News: ' + unique.join('   |   ');
+      } else {
+        newsTicker.textContent = 'Latest News: (no headlines available)';
+      }
+    }
+
+    fetchNews();
+  </script>
+</body>
+</html>
