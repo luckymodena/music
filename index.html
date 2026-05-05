@@ -6,31 +6,25 @@
   <link rel="icon" href="mp3/faviconico.png" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* ... (All your existing CSS from index_3.html remains exactly the same) ... */
     body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #000000; color: #00ff00; }
     .container { max-width: 900px; margin: 0 auto; position: relative; }
     .sticky-header { position: -webkit-sticky; position: sticky; top: 0; z-index: 100; background-color: #000000; padding: 6px 4px; border-bottom: 1px solid #333; }
     .scroll-wrapper { width: 100%; overflow: hidden; white-space: nowrap; margin-bottom: 4px; }
     .scroll-title { display: block; font-size: 1.5em; font-weight: bold; text-align: center; margin: 0 auto; }
-    
-    .current-song-wrapper { width: 100%; overflow: hidden; white-space: nowrap; font-size: 1em; margin-bottom: 4px; position: relative; height: 25px; }
-    .current-song-text { display: inline-block; position: absolute; white-space: nowrap; animation: scrollCurrent 25s linear infinite; }
-    #currentSongScrolling { color: #00ffff; }
-    #newsTicker { color: #ffcc00; animation-duration: 100s; } 
-    
-    @keyframes scrollCurrent { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
+    .current-song-wrapper { width: 100%; overflow: hidden; white-space: nowrap; font-size: 1em; margin-bottom: 4px; }
+    .current-song-text { display: inline-block; padding-left: 100%; animation: scrollCurrent 20s linear infinite; color: #00ffff; }
+    #newsTicker { color: #ffcc00; animation-duration: 150s; }
+    @keyframes scrollCurrent { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
     .vu-meter-container { display: flex; justify-content: center; margin: 6px 0; background-color: #000; }
     #vuMeter { background-color: #111; border: 1px solid #00ff00; border-radius: 4px; }
-
     .controls-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
     .controls-group { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
     audio { width: 100%; margin-top: 4px; accent-color: #00ff00; }
     .controls-bar button { background-color: #333; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
-    
     .audio-enhancements { display: flex; flex-wrap: wrap; gap: 12px; border: 1px solid #00ff00; padding: 6px 8px; border-radius: 4px; margin: 6px 0; }
-    .slider-group { display: flex; align-items: center; gap: 5px; }
+    .search-wrapper { margin: 6px 0 2px 0; }
     .search-input { width: 100%; box-sizing: border-box; background: #111; border: 1px solid #00ff00; color: #00ff00; padding: 8px 12px; border-radius: 4px; }
-    
     ol { padding-left: 45px; margin: 0; }
     li { margin-bottom: 12px; }
     ol li.playing { border: 2px solid #ffffff; border-radius: 6px; padding: 4px 6px; background-color: rgba(255, 255, 255, 0.1); box-shadow: 0 0 10px #ffffff; animation: blinkPlaying 2s linear infinite; }
@@ -42,20 +36,21 @@
     <div class="sticky-header">
       <div class="scroll-wrapper"><h2 class="scroll-title">Stephen Khoo 邱茂鋒 Playlist</h2></div>
       <div class="current-song-wrapper"><span id="currentSongScrolling" class="current-song-text">Now Playing: (loading songs...)</span></div>
-      <div class="current-song-wrapper"><span id="newsTicker" class="current-song-text">Latest News: Fetching Business Times RSS...</span></div>
-      
-      <div class="vu-meter-container">
-        <canvas id="vuMeter" width="300" height="110"></canvas>
-      </div>
+      <div class="current-song-wrapper"><span id="newsTicker" class="current-song-text">Latest News: (loading...)</span></div>
+      <div class="vu-meter-container"><canvas id="vuMeter" width="300" height="110"></canvas></div>
 
       <div class="controls-bar">
         <div class="controls-group">
           <button id="playBtn">Play</button>
           <button id="stopBtn">Stop</button>
-          <button id="prevBtn">Prev</button>
+          <button id="prevBtn">Previous</button>
           <button id="nextBtn">Next</button>
+          <button id="shuffleBtn">Shuffle</button>
         </div>
-        <input type="text" id="songSearch" class="search-input" placeholder="Search playlist..." style="flex: 1; min-width: 150px;">
+        <span class="repeat-label">Repeat: <button id="repeatBtn">Off</button></span>
+        <span id="repeatStatus" class="repeat-status">Repeat mode: Off</span>
+        <span class="repeat-label">Mode: <button id="modeBtn">Shuffle</button></span>
+        <span id="modeStatus" class="mode-status">Play mode: Shuffle (random)</span>
       </div>
 
       <div class="audio-enhancements">
@@ -64,94 +59,138 @@
         <div class="slider-group"><label>Mid:</label><input id="midEq" type="range" min="-12" max="12" step="1" value="0"></div>
         <div class="slider-group"><label>Treble:</label><input id="trebleEq" type="range" min="-12" max="12" step="1" value="0"></div>
       </div>
+
+      <div class="search-wrapper"><input type="text" id="songSearch" class="search-input" placeholder="Search song title..."></div>
     </div>
 
-    <p style="padding-left: 25px;">The playlist updates automatically from GitHub.</p>
-    <ol id="playlist"><li>Loading songs...</li></ol>
+    <p style="padding-left: 25px;">The playlist updates automatically when you upload new files to GitHub.</p>
+
+    <!-- AUTOMATED LIST CONTAINER -->
+    <ol id="playlist">
+      <li>Loading songs from GitHub...</li>
+    </ol>
   </div>
 
   <script>
+    // --- GITHUB CONFIGURATION ---
     const GITHUB_USERNAME = 'luckymodena'; 
     const REPO_NAME = 'music';      
     const FOLDER_PATH = 'mp3';
 
-    const RSS_FEEDS = [
-      'https://www.businesstimes.com.sg/rss/singapore',
-      'https://www.businesstimes.com.sg/rss/economy-policy',
-      'https://www.businesstimes.com.sg/rss/companies-markets',
-      'https://www.businesstimes.com.sg/rss/banking-finance',
-      'https://www.businesstimes.com.sg/rss/telcos-media-tech',
-      'https://www.businesstimes.com.sg/rss/capital-markets-currencies',
-      'https://www.businesstimes.com.sg/rss/wealth',
-      'https://www.businesstimes.com.sg/rss/working-life'
-    ];
+    // Global Player state
+    let items = [];
+    let tracks = [];
+    let currentlyPlaying = -1;
+    let queue = [];
+    let queuePos = -1;
+    let repeatMode = 'off';
+    let playMode = 'shuffle';
 
-    let items = [], tracks = [], currentlyPlaying = -1, leftValue = 0;
-    let audioCtx, analyzer, pcmData, animationFrameId, bassNode, midNode, trebleNode;
+    // Audio Context Vars
+    let audioCtx, analyzer, pcmData, leftValue = 0, rightValue = 0, animationFrameId;
+    let bassNode, midNode, trebleNode;
 
-    async function fetchRSS() {
-      const ticker = document.getElementById('newsTicker');
-      let allHeadlines = [];
-      const fetchPromises = RSS_FEEDS.map(url => 
-        fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`).then(res => res.json()).catch(() => null)
-      );
-      const results = await Promise.all(fetchPromises);
-      results.forEach(data => { if (data && data.status === 'ok') allHeadlines.push(...data.items.map(i => i.title)); });
-      if (allHeadlines.length > 0) ticker.textContent = "Latest News: " + allHeadlines.join(' | ');
-    }
-
+    // --- 1. FETCH PLAYLIST FROM GITHUB ---
     async function loadPlaylistFromGitHub() {
         const playlistElement = document.getElementById('playlist');
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_PATH}`;
+
         try {
-            const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_PATH}`);
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('API limit reached or folder missing');
             const files = await response.json();
-            playlistElement.innerHTML = '';
-            files.filter(f => f.name.endsWith('.mp3')).forEach((file) => {
-                const songName = decodeURIComponent(file.name).replace('.mp3', '').replace(/[-_]/g, ' ');
+
+            playlistElement.innerHTML = ''; // Clear loading text
+
+            files.filter(file => file.name.endsWith('.mp3')).forEach((file) => {
+                const songName = decodeURIComponent(file.name).replace('.mp3', '').replaceAll('-', ' ').replaceAll('_', ' ');
                 const li = document.createElement('li');
-                // Added crossorigin="anonymous" to fix sound/gauge issues[cite: 2]
-                li.innerHTML = `<span class="song-title">${songName}</span><audio controls class="track" crossorigin="anonymous"><source src="${file.download_url}" type="audio/mpeg"></audio>`;
+                li.innerHTML = `
+                    <span class="song-title">${songName}</span>
+                    <audio controls class="track">
+                        <source src="${file.download_url}" type="audio/mpeg">
+                    </audio>
+                `;
                 playlistElement.appendChild(li);
             });
+
+            // Re-map internal arrays after HTML is built
             refreshTrackArrays();
-        } catch (e) { playlistElement.innerHTML = "<li>Error: Check GitHub repo/folder settings.</li>"; }
+            buildQueue(0);
+            document.getElementById('currentSongScrolling').textContent = "Now Playing: (ready)";
+
+        } catch (error) {
+            console.error("Error:", error);
+            playlistElement.innerHTML = "<li>Error: Could not load songs. Check your 'mp3' folder on GitHub.</li>";
+        }
     }
 
     function refreshTrackArrays() {
       items = Array.from(document.querySelectorAll('#playlist li'));
       tracks = Array.from(document.querySelectorAll('#playlist .track'));
-      tracks.forEach((audio, idx) => {
-        audio.addEventListener('play', () => { if (currentlyPlaying !== idx) playTrack(idx); });
-        audio.addEventListener('ended', () => playTrack((idx + 1) % tracks.length));
-      });
+      tracks.forEach((audio, idx) => addAudioListeners(audio, idx));
     }
 
+    function addAudioListeners(audio, idx) {
+      audio.addEventListener('play', () => { if (currentlyPlaying !== idx) playTrack(idx); });
+      audio.addEventListener('ended', () => goToNext());
+    }
+
+    // --- 2. PLAYER LOGIC (Consolidated from index_3.html) ---
     function playTrack(idx) {
+      if (idx < 0 || idx >= tracks.length) return;
       tracks.forEach((a, i) => { a.pause(); items[i].classList.remove('playing'); });
+      
       currentlyPlaying = idx;
-      setupEqualizer(tracks[idx]);
-      tracks[idx].volume = document.getElementById('masterVolume').value;
+      const audio = tracks[idx];
+      setupEqualizer(audio);
+      audio.volume = parseFloat(document.getElementById('masterVolume').value);
+      audio.currentTime = 0;
       items[idx].classList.add('playing');
       document.getElementById('currentSongScrolling').textContent = 'Now Playing: ' + items[idx].querySelector('.song-title').textContent;
-      tracks[idx].play();
+      audio.play();
     }
 
+    function goToNext() {
+      if (repeatMode === 'one') { playTrack(currentlyPlaying); return; }
+      queuePos = (queuePos + 1) % queue.length;
+      playTrack(queue[queuePos]);
+    }
+
+    function goToPrevious() {
+      queuePos = (queuePos - 1 + queue.length) % queue.length;
+      playTrack(queue[queuePos]);
+    }
+
+    function buildQueue(startIdx) {
+      queue = tracks.map((_, i) => i);
+      if (playMode === 'shuffle') {
+        for (let i = queue.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [queue[i], queue[j]] = [queue[j], queue[i]];
+        }
+      }
+      queuePos = queue.indexOf(startIdx);
+    }
+
+    // --- 3. EQUALIZER & VU METER (Consolidated from index_3.html) ---
     function setupEqualizer(activeTrack) {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
       if (!analyzer) {
         analyzer = audioCtx.createAnalyser();
         analyzer.fftSize = 256;
         pcmData = new Float32Array(analyzer.fftSize);
+      }
+      if (!bassNode) {
         bassNode = audioCtx.createBiquadFilter(); bassNode.type = 'lowshelf'; bassNode.frequency.value = 200;
         midNode = audioCtx.createBiquadFilter(); midNode.type = 'peaking'; midNode.frequency.value = 1000;
         trebleNode = audioCtx.createBiquadFilter(); trebleNode.type = 'highshelf'; trebleNode.frequency.value = 4000;
         bassNode.connect(midNode); midNode.connect(trebleNode); trebleNode.connect(audioCtx.destination);
       }
-      if (!activeTrack.hasConnected) {
+      if (!activeTrack.hasConnectedWebAudio) {
         const source = audioCtx.createMediaElementSource(activeTrack);
         source.connect(analyzer); analyzer.connect(bassNode);
-        activeTrack.hasConnected = true;
+        activeTrack.hasConnectedWebAudio = true;
       }
       if (!animationFrameId) drawVUMeter();
     }
@@ -160,43 +199,31 @@
       animationFrameId = requestAnimationFrame(drawVUMeter);
       const canvas = document.getElementById('vuMeter');
       const ctx = canvas.getContext('2d');
-
       if (analyzer && currentlyPlaying !== -1 && !tracks[currentlyPlaying].paused) {
         analyzer.getFloatTimeDomainData(pcmData);
         let sum = 0; pcmData.forEach(v => sum += v*v);
         let peak = Math.sqrt(sum / pcmData.length) * 2.5;
-        leftValue = leftValue * 0.85 + (Math.min(peak, 1)) * 0.15;
+        leftValue = leftValue * 0.85 + (peak > 1 ? 1 : peak) * 0.15;
       } else { leftValue *= 0.85; }
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 3;
-      // Drawing the single original gauge arc[cite: 2]
       let angle = Math.PI + (leftValue * Math.PI * 0.95);
-      ctx.beginPath(); 
-      ctx.moveTo(150, 130); 
-      ctx.lineTo(150 + Math.cos(angle)*110, 130 + Math.sin(angle)*110); 
-      ctx.stroke();
-      
-      // Center point
-      ctx.fillStyle = '#00ff00';
-      ctx.beginPath(); ctx.arc(150, 130, 5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(150, 130); ctx.lineTo(150 + Math.cos(angle)*110, 130 + Math.sin(angle)*110); ctx.stroke();
     }
 
-    document.getElementById('playBtn').addEventListener('click', () => {
-        if(currentlyPlaying !== -1) tracks[currentlyPlaying].play();
-        else if (tracks.length > 0) playTrack(0);
-    });
-
-    document.getElementById('stopBtn').addEventListener('click', () => {
-        if(currentlyPlaying !== -1) { tracks[currentlyPlaying].pause(); tracks[currentlyPlaying].currentTime = 0; }
-    });
-
+    // --- 4. EVENT LISTENERS ---
+    document.getElementById('playBtn').addEventListener('click', () => { if(currentlyPlaying !== -1) tracks[currentlyPlaying].play(); else playTrack(queue[0]); });
+    document.getElementById('stopBtn').addEventListener('click', () => { if(currentlyPlaying !== -1) { tracks[currentlyPlaying].pause(); tracks[currentlyPlaying].currentTime = 0; items[currentlyPlaying].classList.remove('playing'); currentlyPlaying = -1; } });
+    document.getElementById('nextBtn').addEventListener('click', goToNext);
+    document.getElementById('prevBtn').addEventListener('click', goToPrevious);
+    document.getElementById('modeBtn').addEventListener('click', () => { playMode = (playMode === 'shuffle' ? 'normal' : 'shuffle'); document.getElementById('modeStatus').textContent = `Play mode: ${playMode}`; buildQueue(currentlyPlaying !== -1 ? currentlyPlaying : 0); });
     document.getElementById('songSearch').addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase();
       items.forEach(li => li.style.display = li.textContent.toLowerCase().includes(term) ? '' : 'none');
     });
 
-    window.addEventListener('DOMContentLoaded', () => { loadPlaylistFromGitHub(); fetchRSS(); });
+    // Load initial data
+    window.addEventListener('DOMContentLoaded', loadPlaylistFromGitHub);
   </script>
 </body>
 </html>
