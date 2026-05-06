@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LUCKY MODENA MASTER CONSOLE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    body { font-family: 'Arial', sans-serif; margin: 0; padding: 10px; background-color: #0a0a0a; color: #eee; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+    .container { max-width: 1100px; margin: 0 auto; padding-bottom: 80px; }
+    
+    .console-panel { 
+      background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+      padding: 20px;
+      border-radius: 15px;
+      border: 4px solid #333;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      margin-bottom: 20px;
+    }
+
+    .gauge-row { display: flex; justify-content: center; margin-bottom: 20px; }
+    .gauge-box { 
+      width: 100%; max-width: 400px; height: 180px; 
+      background: #4db8ff; 
+      border: 6px solid #111;
+      border-radius: 4px;
+      box-shadow: 0 0 25px rgba(77, 184, 255, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    canvas { width: 100%; height: 100%; }
+
+    .display-screen {
+      background: #000; padding: 12px; border: 1px solid #333;
+      border-radius: 4px; margin: 15px 0; text-align: center;
+      min-height: 60px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;
+    }
+
+    /* Scrolling Green RSS Feed[cite: 3] */
+    .rss-container {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      border-bottom: 1px solid #222;
+      padding-bottom: 5px;
+      margin-bottom: 5px;
+    }
+    .rss-ticker { 
+      display: inline-block;
+      color: #0f0; 
+      font-family: 'Courier New', monospace; 
+      font-size: 0.75em; 
+      text-transform: uppercase;
+      text-shadow: 0 0 5px #0f0;
+      animation: marquee 30s linear infinite;
+      padding-left: 100%;
+    }
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+
+    .display-text { color: #0f0; font-family: 'Courier New', monospace; font-size: 0.85em; text-shadow: 0 0 5px #0f0; word-break: break-all; }
+
+    .knob-row { display: flex; justify-content: center; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+    .knob-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .knob {
+      width: 60px; height: 60px;
+      background: radial-gradient(circle, #444 0%, #111 70%);
+      border: 3px solid #333; border-radius: 50%; position: relative; cursor: pointer; touch-action: none;
+    }
+    .knob::after { content: ''; position: absolute; top: 10%; left: 50%; width: 3px; height: 12px; background: #fff; transform: translateX(-50%); border-radius: 2px; }
+    .knob-label { font-size: 0.65em; color: #888; font-weight: bold; }
+
+    .button-console { display: flex; justify-content: center; margin-top: 20px; width: 100%; }
+    .btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 500px; }
+    .square-btn {
+      width: 75px; height: 45px;
+      background: linear-gradient(180deg, #444, #222);
+      border: 2px solid #111; border-radius: 6px;
+      color: #aaa; font-size: 0.7em; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; font-weight: bold;
+    }
+    .square-btn.active { color: #0088ff; border-color: #0088ff; box-shadow: 0 0 8px #0088ff; }
+    #stopBtn { background: linear-gradient(180deg, #a00, #600); border-color: #400; color: #fff; }
+
+    ol { padding: 0; list-style: none; margin-top: 20px; }
+    li { background: #111; margin-bottom: 5px; padding: 10px; border: 1px solid #222; display: flex; flex-direction: column; gap: 10px; }
+    li.playing { border-color: #0088ff; background: #111b22; }
+    .track { width: 100%; height: 35px; filter: invert(1) hue-rotate(180deg); }
+    
+    @media (max-width: 480px) {
+      .square-btn { width: 65px; height: 40px; font-size: 0.6em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="console-panel">
+      <div class="gauge-row">
+        <div class="gauge-box"><canvas id="masterGauge" width="400" height="200"></canvas></div>
+      </div>
+
+      <div class="display-screen">
+        <div class="rss-container">
+          <div id="rssTicker" class="rss-ticker">FETCHING LATEST BUSINESS TIMES FEEDS...</div>
+        </div>
+        <span id="currentSongDisplay" class="display-text">SYSTEM READY_</span>
+      </div>
+
+      <div class="knob-row">
+        <div class="knob-container"><div class="knob-label">GAIN</div><div id="knob-gain" class="knob"></div></div>
+        <div class="knob-container"><div class="knob-label">BASS</div><div id="knob-bass" class="knob"></div></div>
+        <div class="knob-container"><div class="knob-label">TREBLE</div><div id="knob-treble" class="knob"></div></div>
+      </div>
+
+      <div class="button-console">
+        <div class="btn-row">
+          <button id="prevBtn" class="square-btn">PREV</button>
+          <button id="rrBtn" class="square-btn">RR</button>
+          <button id="playBtn" class="square-btn">PLAY</button>
+          <button id="pauseBtn" class="square-btn">PAUSE</button>
+          <button id="ffBtn" class="square-btn">FF</button>
+          <button id="nextBtn" class="square-btn">NEXT</button>
+          <button id="stopBtn" class="square-btn">STOP</button>
+          <button id="shuffleBtn" class="square-btn">SHUFFLE</button>
+          <button id="repeatBtn" class="square-btn">REP ALL</button>
+        </div>
+      </div>
+    </div>
+    <ol id="playlist"><li>LOADING DATA...</li></ol>
+  </div>
+
+  <script>
+    const GITHUB_USERNAME = 'luckymodena'; 
+    const REPO_NAME = 'english';      
+    const FOLDER_PATH = 'mp3';
+    const RSS_URLS = [
+      'https://www.businesstimes.com.sg/rss/singapore',
+      'https://www.businesstimes.com.sg/rss/economy-policy',
+      'https://www.businesstimes.com.sg/rss/companies-markets',
+      'https://www.businesstimes.com.sg/rss/banking-finance',
+      'https://www.businesstimes.com.sg/rss/telcos-media-tech',
+      'https://www.businesstimes.com.sg/rss/capital-markets-currencies',
+      'https://www.businesstimes.com.sg/rss/wealth',
+      'https://www.businesstimes.com.sg/rss/working-life'
+    ];
+
+    let tracks = [], items = [], currentlyPlaying = -1, queue = [], queuePos = -1;
+    let isShuffle = false, repeatMode = 'all', volume = 1;
+    let audioCtx, bassNode, trebleNode, analyser, dataArray;
+
+    async function init() {
+      fetchRSS();
+      try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_PATH}`);
+        const files = await response.json();
+        const playlist = document.getElementById('playlist');
+        playlist.innerHTML = '';
+        files.filter(f => f.name.endsWith('.mp3')).forEach((file) => {
+          const cleanName = decodeURIComponent(file.name).replace('.mp3', '').replace(/[-_]/g, ' ');
+          const li = document.createElement('li');
+          li.innerHTML = `<span style="font-size:0.8em;">${cleanName}</span><audio controls class="track" crossorigin="anonymous"><source src="${file.download_url}" type="audio/mpeg"></audio>`;
+          playlist.appendChild(li);
+        });
+        setupPlayer();
+        drawGauges();
+        setupKnobs();
+      } catch (e) { console.error(e); }
+    }
+
+    async function fetchRSS() {
+      let allHeadlines = [];
+      for (const url of RSS_URLS) {
+        try {
+          const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+          const data = await res.json();
+          if (data.items) allHeadlines.push(...data.items.map(i => i.title));
+        } catch (e) { console.warn("RSS Load Error", e); }
+      }
+      if (allHeadlines.length > 0) {
+        document.getElementById('rssTicker').textContent = allHeadlines.join(" ••• ");
+      }
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "00:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateDisplay() {
+      if (currentlyPlaying === -1) return;
+      const audio = tracks[currentlyPlaying];
+      const remaining = audio.duration - audio.currentTime;
+      const trackName = items[currentlyPlaying].querySelector('span').innerText.toUpperCase();
+      document.getElementById('currentSongDisplay').textContent = `${trackName} [-${formatTime(remaining)}]`;
+    }
+
+    function setupPlayer() {
+      tracks = Array.from(document.querySelectorAll('.track'));
+      items = Array.from(document.querySelectorAll('#playlist li'));
+      tracks.forEach((t, i) => {
+        t.onplay = () => { if (currentlyPlaying !== i) playTrack(i); };
+        t.onended = () => { goToNext(); };
+        t.ontimeupdate = () => { if (currentlyPlaying === i) updateDisplay(); };
+      });
+      buildQueue(0);
+    }
+
+    function buildQueue(startIdx) {
+      queue = tracks.map((_, i) => i);
+      if (isShuffle) {
+        for (let i = queue.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [queue[i], queue[j]] = [queue[j], queue[i]];
+        }
+      }
+      queuePos = queue.indexOf(startIdx);
+    }
+
+    function playTrack(idx) {
+      if (currentlyPlaying !== -1) {
+        tracks[currentlyPlaying].pause();
+        items[currentlyPlaying].classList.remove('playing');
+      }
+      currentlyPlaying = idx;
+      const audio = tracks[idx];
+      initAudioContext(audio);
+      items[idx].classList.add('playing');
+      updateDisplay();
+      audio.volume = volume;
+      audio.play();
+    }
+
+    function goToNext() {
+      if (repeatMode === 'one') playTrack(currentlyPlaying);
+      else { queuePos = (queuePos + 1) % queue.length; playTrack(queue[queuePos]); }
+    }
+
+    function initAudioContext(audio) {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        bassNode = audioCtx.createBiquadFilter(); bassNode.type = 'lowshelf'; bassNode.frequency.value = 200;
+        trebleNode = audioCtx.createBiquadFilter(); trebleNode.type = 'highshelf'; trebleNode.frequency.value = 3000;
+        bassNode.connect(trebleNode); trebleNode.connect(analyser); analyser.connect(audioCtx.destination);
+      }
+      if (!audio.hasConnected) {
+        const source = audioCtx.createMediaElementSource(audio);
+        source.connect(bassNode);
+        audio.hasConnected = true;
+      }
+    }
+
+    function drawGauges() {
+      const canvas = document.getElementById('masterGauge');
+      const ctx = canvas.getContext('2d');
+      function render() {
+        requestAnimationFrame(render);
+        let vol = 0;
+        if (analyser) {
+          analyser.getByteFrequencyData(dataArray);
+          vol = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        }
+        const angle = (-Math.PI * 0.8) + (vol / 128) * (Math.PI * 0.6);
+        drawRefinedGauge(ctx, canvas, angle);
+      }
+      render();
+    }
+
+    function drawRefinedGauge(ctx, canvas, angle) {
+      const cx = canvas.width / 2, cy = canvas.height * 0.95, rad = canvas.height * 0.85;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#002b80'; ctx.lineWidth = 3; 
+      ctx.beginPath(); ctx.arc(cx, cy, rad - 10, -Math.PI * 0.82, -Math.PI * 0.18); ctx.stroke();
+      ctx.fillStyle = '#002b80'; ctx.font = "bold 10px Arial"; ctx.textAlign = "center";
+      ctx.fillText("DECIBELS", cx, cy - 35);
+      ctx.font = "bold 12px Arial";
+      ctx.fillText("MASTER OUTPUT", cx, cy - 10);
+      const decibels = ["-50", "-40", "-30", "-20", "-10", "0"];
+      for (let i = 0; i < decibels.length; i++) {
+        const a = (-Math.PI * 0.8) + (i / 5) * (Math.PI * 0.6);
+        ctx.fillText(decibels[i], cx + Math.cos(a) * (rad - 25), cy + Math.sin(a) * (rad - 25));
+      }
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle + Math.PI/2);
+      ctx.strokeStyle = '#002b80'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0, -rad - 5); ctx.stroke();
+      ctx.restore();
+    }
+
+    function setupKnobs() {
+      const handleKnob = (id, callback) => {
+        const el = document.getElementById(id);
+        let startY, startRot = 0;
+        const moveHandler = (clientY) => {
+          let diff = startY - clientY;
+          let rot = Math.max(-150, Math.min(150, startRot + diff));
+          el.style.transform = `rotate(${rot}deg)`;
+          callback((rot + 150) / 300);
+        };
+        el.addEventListener('mousedown', (e) => {
+          startY = e.clientY;
+          const onMouseMove = (me) => moveHandler(me.clientY);
+          const onMouseUp = () => {
+            startRot = parseInt(el.style.transform.replace('rotate(','').replace('deg)','')) || 0;
+            document.removeEventListener('mousemove', onMouseMove);
+          };
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp, { once: true });
+        });
+        el.addEventListener('touchstart', (e) => {
+          startY = e.touches[0].clientY;
+          const onTouchMove = (te) => moveHandler(te.touches[0].clientY);
+          const onTouchEnd = () => {
+            startRot = parseInt(el.style.transform.replace('rotate(','').replace('deg)','')) || 0;
+            document.removeEventListener('touchmove', onTouchMove);
+          };
+          document.addEventListener('touchmove', onTouchMove, { passive: false });
+          document.addEventListener('touchend', onTouchEnd, { once: true });
+        });
+      };
+      handleKnob('knob-gain', (v) => { volume = v; if(currentlyPlaying!==-1) tracks[currentlyPlaying].volume = v; });
+      handleKnob('knob-bass', (v) => { if(bassNode) bassNode.gain.value = (v * 24) - 12; });
+      handleKnob('knob-treble', (v) => { if(trebleNode) trebleNode.gain.value = (v * 24) - 12; });
+    }
+
+    document.getElementById('ffBtn').onclick = () => { if(currentlyPlaying !== -1) tracks[currentlyPlaying].currentTime += 10; };
+    document.getElementById('rrBtn').onclick = () => { if(currentlyPlaying !== -1) tracks[currentlyPlaying].currentTime -= 10; };
+    document.getElementById('shuffleBtn').onclick = function() { isShuffle = !isShuffle; this.classList.toggle('active', isShuffle); buildQueue(currentlyPlaying !== -1 ? currentlyPlaying : 0); };
+    document.getElementById('repeatBtn').onclick = function() { repeatMode = (repeatMode === 'all') ? 'one' : 'all'; this.textContent = (repeatMode === 'one') ? 'REP ONE' : 'REP ALL'; };
+    document.getElementById('stopBtn').onclick = () => { if(currentlyPlaying !== -1) { tracks[currentlyPlaying].pause(); tracks[currentlyPlaying].currentTime = 0; document.getElementById('currentSongDisplay').textContent = "SYSTEM READY_"; }};
+    document.getElementById('playBtn').onclick = () => { if(currentlyPlaying !== -1) tracks[currentlyPlaying].play(); else playTrack(queue[0]); };
+    document.getElementById('pauseBtn').onclick = () => { if(currentlyPlaying !== -1) tracks[currentlyPlaying].pause(); };
+    document.getElementById('nextBtn').onclick = () => goToNext();
+    document.getElementById('prevBtn').onclick = () => { queuePos = (queuePos - 1 + queue.length) % queue.length; playTrack(queue[queuePos]); };
+
+    window.onload = init;
+  </script>
+</body>
+</html>
